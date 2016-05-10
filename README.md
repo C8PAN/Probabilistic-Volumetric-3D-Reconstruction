@@ -1,6 +1,9 @@
 # Probabilistic Volumetric 3D Reconstruction
 
-This repository implements a probabilistic volumetric 3D reconstruction algorithm. The repo builds on the VXL library. 
+This repository implements a probabilistic and volumetric 3D reconstruction algorithm. The algorithm takes as input images (with known camera pose and intrinsics) and generates a dense probabilistic 3D model that exposes the uncertainty in the reconstruction. Please see the video below for a short explanation and results. 
+
+[![Towards Probabilistic Volumetric Reconstruction using Ray Potentials](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/youtube_img.png
+)](https://www.youtube.com/watch?v=NGj9sGaeOVY)
 
 If you use this software please cite the following publication:
 ```
@@ -14,9 +17,6 @@ If you use this software please cite the following publication:
   year = {2015}
 }
 ```
-
-[![Towards Probabilistic Volumetric Reconstruction using Ray Potentials](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/youtube_img.png
-)](https://www.youtube.com/watch?v=NGj9sGaeOVY)
 
 ## Requirements:
 - [cmake](http://cmake.org) 
