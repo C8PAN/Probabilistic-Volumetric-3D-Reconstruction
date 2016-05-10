@@ -114,7 +114,7 @@ endif()
 # multi-platform GUI toolkit
 # Default the dashboard builds to "YES" so that
 # we have some clients that try to compile vgui
-CMAKE_DEPENDENT_OPTION( BUILD_VGUI "Build VGUI" OFF
+CMAKE_DEPENDENT_OPTION( BUILD_VGUI "Build VGUI" ON
                          "BUILD_CORE_GEOMETRY;BUILD_CORE_NUMERICS;BUILD_CORE_UTILITIES;BUILD_CORE_SERIALISATION;BUILD_CORE_IMAGING" OFF )
 if(BUILD_VGUI)
   add_subdirectory(vgui)
