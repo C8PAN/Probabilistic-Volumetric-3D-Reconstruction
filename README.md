@@ -20,3 +20,15 @@ If you use this software please cite the following publication:
 - Nvidia GPU with compute capability at least 3.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
 
 ## Compilation:
+```bash
+mkdir vxl_build_directory
+cd vxl_build_directory
+cmake ../vxl/ -DCMAKE_BUILD_TYPE=Release
+make -j -k
+```
+
+## Running the reconstruction code
+
+## Visualizing the 3D models
+
+## Exporting point clouds
