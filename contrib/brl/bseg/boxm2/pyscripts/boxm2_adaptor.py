@@ -287,7 +287,21 @@ def update_hist_app_grey(scene, cache, cam, img, device=None):
 ####################################################################
 # Generic update - will use GPU if device/openclcache are passed in
 ####################################################################
+def update_belief(scene, cache, device, cam, img, image_number, update_occupancy=True,update_appearance=True,mask=None,var=-1.0):
 
+    boxm2_batch.init_process("boxm2OclUpdateBeliefProcess")
+    boxm2_batch.set_input_from_db(0, device)
+    boxm2_batch.set_input_from_db(1, scene)
+    boxm2_batch.set_input_from_db(2, cache)
+    boxm2_batch.set_input_from_db(3, cam)
+    boxm2_batch.set_input_from_db(4, img)
+    boxm2_batch.set_input_unsigned(5, image_number); #image number 
+    boxm2_batch.set_input_from_db(6, mask); #image number 
+    boxm2_batch.set_input_float(7, var); #image number 
+    boxm2_batch.set_input_bool(8, update_occupancy); #update occupancy beliefs
+    boxm2_batch.set_input_bool(9, update_appearance); #update appearance beliefs    
+    boxm2_batch.run_process()
+    return;
 
 def update_rgb(scene, cache, cam, img, device=None, mask="", updateAlpha=True):
     # If no device is passed in, do cpu update
@@ -723,6 +737,7 @@ def render_rgb(scene, cache, cam, ni=1280, nj=720, device=None, tnear=100000.0, 
 #####################################################################
 
 
+
 def render_depth(scene, cache, cam, ni=1280, nj=720, device=None):
     if cache.type == "boxm2_cache_sptr":
         # print "boxm2_batch CPU render depth not yet implemented";
@@ -915,6 +930,30 @@ def visualize_change(change_img, in_img, thresh=.5, low_is_change=False):
     vis_img = dbvalue(id, type)
     return vis_img
 
+####################################################################
+# Render depth entropy
+####################################################################
+
+def render_entropy(scene, cache, cam, ni=1280, nj=720, device=None, ident_string="", tnear=100000.0, tfar=100000.0):
+    if cache.type == "boxm2_opencl_cache_sptr" and device:
+        boxm2_batch.init_process("boxm2OclRenderDepthEntropyProcess")
+        boxm2_batch.set_input_from_db(0, device)
+        boxm2_batch.set_input_from_db(1, scene)
+        boxm2_batch.set_input_from_db(2, cache)
+        boxm2_batch.set_input_from_db(3, cam)
+        boxm2_batch.set_input_unsigned(4, ni)
+        boxm2_batch.set_input_unsigned(5, nj)
+        boxm2_batch.set_input_string(6, ident_string)
+        boxm2_batch.set_input_float(7, tnear)
+        boxm2_batch.set_input_float(8, tfar)
+        boxm2_batch.run_process()
+        (id, type) = boxm2_batch.commit_output(0)
+        exp_image = dbvalue(id, type)
+        return exp_image
+    else:
+        print "ERROR: Cache type not recognized: ", cache.type
+
+
 #####################################################################
 # generic refine (will work on color and grey scenes)
 #####################################################################
@@ -945,6 +984,27 @@ def refine(scene, cache, thresh=0.3, device=None):
         return nCells
     else:
         print "ERROR: Cache type unrecognized: ", cache.type
+
+
+def refine_bp(scene, cache, device,thresh=0.3,num_images=0,skip_msg_refinment=True):
+
+    print "boxm2_batch GPU refine"
+    boxm2_batch.init_process("boxm2OclRefineBPProcess")
+    boxm2_batch.set_input_from_db(0, device)
+    boxm2_batch.set_input_from_db(1, scene)
+    boxm2_batch.set_input_from_db(2, cache)
+    boxm2_batch.set_input_float(3, thresh)
+    boxm2_batch.set_input_unsigned(4, num_images)
+    boxm2_batch.set_input_bool(5, skip_msg_refinment)
+    boxm2_batch.run_process()
+
+    # get and report cells output
+    (id, type) = boxm2_batch.commit_output(0)
+    nCells = boxm2_batch.get_output_int(id)
+    boxm2_batch.remove_data(id)
+    return nCells
+
+
 
 #####################################################################
 # generic merge method
@@ -1020,6 +1080,14 @@ def clear_cache(cache):
         boxm2_batch.run_process()
     else:
         print "ERROR: Cache type needs to be boxm2_cache_sptr, not ", cache.type
+
+
+def clear_app_models(device,scene,opencl_cache):
+    boxm2_batch.init_process("boxm2OclClearAppModelsProcess");
+    boxm2_batch.set_input_from_db(0,device);
+    boxm2_batch.set_input_from_db(1,scene);
+    boxm2_batch.set_input_from_db(2,opencl_cache);
+    boxm2_batch.run_process();  
 
 
 ######################################################################

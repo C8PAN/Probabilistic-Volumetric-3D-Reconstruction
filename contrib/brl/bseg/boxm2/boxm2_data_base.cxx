@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "boxm2_data_base.h"
 #include <vcl_compiler.h>
+#include <vcl_limits.h>
+
 //:
 // \file
 
@@ -68,7 +70,7 @@ void boxm2_data_base::set_default_value(std::string data_type, boxm2_block_metad
 
   //initialize the data to the correct value
   if (data_type.find(boxm2_data_traits<BOXM2_ALPHA>::prefix()) != std::string::npos) {
-    const float ALPHA_INIT = float(-std::log(1.0f - data.p_init_) / side_len);
+    const float ALPHA_INIT = data.p_init_;
     float* alphas = (float*) data_buffer_;
     std::fill(alphas, alphas+num_cells, ALPHA_INIT);
   }
@@ -100,6 +102,18 @@ void boxm2_data_base::set_default_value(std::string data_type, boxm2_block_metad
         int buffer_length = (int)(buffer_length_/sizeof(float));
         for (int i=0; i<buffer_length; ++i) floats[i] = 1.0f;
     }
+  else if ( data_type.find(boxm2_data_traits<BOXM2_LOG_MSG>::prefix()) != vcl_string::npos ) {
+	  float* floats = (float*) data_buffer_;
+      int buffer_length = (int)(buffer_length_/sizeof(float));
+      for (int i=0; i<buffer_length; ++i) floats[i] = vcl_numeric_limits<float>::signaling_NaN();
+  }
+  else if ( data_type.find(boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix()) != vcl_string::npos ) {
+	  float init = vcl_log(data.p_init_) - vcl_log(1.0f-data.p_init_);
+	  vcl_cout << "Initializing boxm2 log sum msg databse...to " << init << vcl_endl;
+      float* floats = (float*) data_buffer_;
+      int buffer_length = (int)(buffer_length_/sizeof(float));
+      for (int i=0; i<buffer_length; ++i) floats[i] = init;
+  }
   else {
     std::memset(data_buffer_, 0, buffer_length_);
   }

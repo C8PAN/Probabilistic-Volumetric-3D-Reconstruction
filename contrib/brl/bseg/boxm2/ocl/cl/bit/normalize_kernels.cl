@@ -97,6 +97,53 @@ __kernel void normalize_render_depth_kernel(__global float * exp_img,
 }
 #endif
 
+#ifdef RENDER_ENTROPY
+__kernel void normalize_render_depth_entropy(__global float * exp_img,
+                                            __global float* vis_img,
+                                            __global uint4* imgdims)
+{
+    int i=0,j=0;
+    i=get_global_id(0);
+    j=get_global_id(1);
+    int imindex=j*get_global_size(0)+i;
+
+    // check to see if the thread corresponds to an actual pixel as in some
+    // cases #of threads will be more than the pixels.
+    if (i>=(*imgdims).z || j>=(*imgdims).w)
+        return;
+// 
+    //normalize image with respect to visibility
+    float vis   = vis_img[imindex];
+    vis = clamp(vis,1.0e-8f,1.0f);
+    exp_img[imindex] -= vis * log2(vis);
+}
+#endif
+
+
+#ifdef NORMALIZE_RENDER_ENTROPY_GL
+__kernel void normalize_render_depth_entropy(__global uint * exp_img,
+                                            __global float* vis_img,
+                                            __global uint4* imgdims)
+{
+    int i=0,j=0;
+    i=get_global_id(0);
+    j=get_global_id(1);
+    int imindex=j*get_global_size(0)+i;
+
+    // check to see if the thread corresponds to an actual pixel as in some
+    // cases #of threads will be more than the pixels.
+    if (i>=(*imgdims).z || j>=(*imgdims).w)
+        return;
+ 
+    float entropy  = as_float(exp_img[imindex]);
+    float vis   = vis_img[imindex];
+    vis = clamp(vis,1.0e-8f,1.0f);
+    entropy -=  vis * log2(vis);
+    exp_img[imindex] =( rgbaFloatToInt((float4) entropy));//(intensity-*min_i)/range) ;
+}
+#endif
+
+
 #ifdef NORMALIZE_RENDER_GL
 __kernel void normalize_render_kernel_gl(__global uint * exp_img,
                                          __global float* vis_img,

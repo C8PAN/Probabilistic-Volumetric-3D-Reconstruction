@@ -33,11 +33,14 @@ boxm2_ocl_render_tableau::boxm2_ocl_render_tableau()
   DECLARE_FUNC_CONS(boxm2_ocl_render_gl_view_dep_app_expected_image_process);
   DECLARE_FUNC_CONS(boxm2_ocl_render_gl_view_dep_app_expected_color_process);
   DECLARE_FUNC_CONS(boxm2_ocl_render_gl_expected_depth_process);
+  DECLARE_FUNC_CONS(boxm2_ocl_render_gl_depth_entropy_process);
+
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_expected_image_process, "boxm2OclRenderGlExpectedImageProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_expected_color_process, "boxm2OclRenderGlExpectedColorProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_view_dep_app_expected_image_process, "boxm2OclRenderGlViewDepExpectedImageProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_view_dep_app_expected_color_process, "boxm2OclRenderGlViewDepExpectedColorProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_expected_depth_process, "boxm2OclRenderGlExpectedDepthProcess");
+  REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_depth_entropy_process, "boxm2OclRenderGlDepthEntropyProcess");
 
   REGISTER_DATATYPE(boxm2_opencl_cache_sptr);
   REGISTER_DATATYPE(boxm2_scene_sptr);
@@ -82,6 +85,7 @@ bool boxm2_ocl_render_tableau::init(bocl_device_sptr device,
     trajectory_ = new boxm2_trajectory(30.0, 45.0, -1.0, scene_->bounding_box(), ni, nj);
     cam_iter_ = trajectory_->begin();
     render_depth_ = false;
+    render_depth_entropy_ = false;
     // set depth_scale_ and depth_offset_
     calibrate_depth_range();
     return true;
@@ -128,6 +132,13 @@ bool boxm2_ocl_render_tableau::handle(vgui_event const &e)
       std::cout << "Toggling depth and expected image" << std::endl;
       render_depth_ = !render_depth_;
       if (render_depth_) {
+        calibrate_depth_range();
+      }
+    }
+    else if (e.key == vgui_key('e')) {
+      std::cout << "Toggling to depth entropy rendering" << std::endl;
+      render_depth_entropy_ = !render_depth_entropy_;
+      if (render_depth_entropy_) {
         calibrate_depth_range();
       }
     }
@@ -219,6 +230,23 @@ float boxm2_ocl_render_tableau::render_frame()
       good = good && bprb_batch_process_manager::instance()->set_input(8, brdb_depth_scale);   // depth scale
       good = good && bprb_batch_process_manager::instance()->set_input(9, brdb_depth_offset);   // depth offset
     }
+    else  if (render_depth_entropy_) {
+        // set the depth_offset_ and depth_scale_ values
+        calibrate_depth_range();
+
+        good = bprb_batch_process_manager::instance()->init_process("boxm2OclRenderGlDepthEntropyProcess");
+        //set process args
+        good = good && bprb_batch_process_manager::instance()->set_input(0, brdb_device); // device
+        good = good && bprb_batch_process_manager::instance()->set_input(1, brdb_scene); //  scene
+        good = good && bprb_batch_process_manager::instance()->set_input(2, brdb_opencl_cache);
+        good = good && bprb_batch_process_manager::instance()->set_input(3, brdb_cam);// camera
+        good = good && bprb_batch_process_manager::instance()->set_input(4, brdb_ni);  // ni for rendered image
+        good = good && bprb_batch_process_manager::instance()->set_input(5, brdb_nj);   // nj for rendered image
+        good = good && bprb_batch_process_manager::instance()->set_input(6, exp_img);   // exp image ( gl buffer)
+        good = good && bprb_batch_process_manager::instance()->set_input(7, exp_img_dim);   // exp image dimensions
+        good = good && bprb_batch_process_manager::instance()->set_input(8, brdb_depth_scale);   // depth scale
+        good = good && bprb_batch_process_manager::instance()->set_input(9, brdb_depth_offset);   // depth offset
+      }
     else {
 
       //if scene has RGB data type, use color render process

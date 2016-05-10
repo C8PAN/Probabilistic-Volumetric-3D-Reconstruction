@@ -107,4 +107,12 @@ DECLARE_FUNC_CONS(boxm2_ocl_ingest_label_with_cam_process);
 DECLARE_FUNC_CONS(boxm2_ocl_render_gl_expected_depth_process);
 DECLARE_FUNC_CONS(boxm2_ocl_refine_scene_around_geometry_process);
 DECLARE_FUNC_CONS(boxm2_ocl_filter_scene_data_process);
+
+
+DECLARE_FUNC_CONS(boxm2_ocl_update_belief_process);
+DECLARE_FUNC_CONS(boxm2_ocl_clear_app_models_process);
+DECLARE_FUNC_CONS(boxm2_ocl_render_depth_entropy_process);
+DECLARE_FUNC_CONS(boxm2_ocl_render_gl_depth_entropy_process);
+DECLARE_FUNC_CONS(boxm2_ocl_refine_bp_process);
+
 #endif

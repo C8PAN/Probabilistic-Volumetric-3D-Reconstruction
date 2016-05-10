@@ -86,6 +86,8 @@
     #define NORM 65535
 #endif
 
+#define MSG_TYPE float
+
 #ifndef MOG_TYPE
     #define MOG_TYPE float16
 #endif

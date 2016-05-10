@@ -140,6 +140,12 @@ class boxm2_scene_adaptor(object):
         else:
             return update_grey(self.scene, cache, cam, img, dev, ident_string, mask, update_alpha, var, update_app, tnear, tfar)
 
+    def update(self, cam, img, image_number, update_occupancy=True, update_app=True, mask=None, var=-1.0):
+        cache = self.opencl_cache
+        return update_belief(self.scene, cache, self.device ,cam, img, image_number, update_occupancy, update_app, mask, var)
+
+
+
     # update wrapper, can pass in a Null device to use
     def update_app(self, cam, img, device_string="", force_grey=False):
         cache = self.active_cache
@@ -196,6 +202,14 @@ class boxm2_scene_adaptor(object):
             boxm2_batch.remove_data(vis_image.id)
         else:
             expimg = render_grey(self.scene, cache, cam,
+                                 ni, nj, dev, ident_string, tnear, tfar)
+        return expimg
+
+    def render_depth_entropy(self, cam, ni=1280, nj=720, ident_string="", tnear=1000000.0, tfar=1000000.0, ):
+        cache = self.opencl_cache
+        dev = self.device
+        
+        expimg = render_entropy(self.scene, cache, cam,
                                  ni, nj, dev, ident_string, tnear, tfar)
         return expimg
 
@@ -415,6 +429,10 @@ class boxm2_scene_adaptor(object):
             nCells = refine(self.scene, self.cpu_cache, thresh, None)
         return nCells
 
+    def refine_bp(self, thresh=0.3):
+        nCells = refine_bp(self.scene, self.opencl_cache, self.device,thresh)
+        return nCells
+
     def merge(self, thresh=0.3, device_string=""):
         if device_string == "":
             merge(self.scene, self.active_cache, thresh, self.device)
@@ -469,6 +487,9 @@ class boxm2_scene_adaptor(object):
         clear_cache(self.cpu_cache)
         if self.opencl_cache:
             clear_cache(self.opencl_cache)
+
+    def clear_app_models(self):
+        clear_app_models(self.device,self.scene,self.opencl_cache)
 
     ################################
     # get info functions

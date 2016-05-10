@@ -92,7 +92,9 @@ typedef vnl_vector_fixed<float, 16> vnl_vector_fixed_float_16;
   X(BOXM2_RAY_DIR, "boxm2_ray_dir", vnl_vector_fixed_float_4) \
   X(BOXM2_CHAR8, "char8", vnl_vector_fixed_unsigned_char_8) \
   X(BOXM2_VEC3D, "boxm2_vec3d", vnl_vector_fixed_float_4) \
-  X(BOXM2_VECF_EYELID, "boxm2_vecf_eyelid", vnl_vector_fixed_float_16)
+  X(BOXM2_VECF_EYELID, "boxm2_vecf_eyelid", vnl_vector_fixed_float_16) \
+  X(BOXM2_LOG_MSG, "boxm2_log_msg", float) \
+  X(BOXM2_SUM_LOG_MSG, "boxm2_sum_log_msg", float) \
 
 
 

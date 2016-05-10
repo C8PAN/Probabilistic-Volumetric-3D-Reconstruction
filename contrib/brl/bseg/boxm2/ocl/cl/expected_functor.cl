@@ -15,7 +15,8 @@ void step_cell_render(__global MOG_TYPE * cell_data,
                                float    * expected_i)
 {
   float alpha = alpha_data[data_ptr];
-  float diff_omega=exp(-alpha*d);
+  // float diff_omega=exp(-alpha*d);
+  float diff_omega= 1 - alpha; //prob edit
   float expected_int_cell=0.0f;
   // for rendering only
   if (diff_omega<0.995f)
@@ -71,6 +72,26 @@ void step_cell_render(__global MOG_TYPE * cell_data,
   (*expected_i)+=expected_int_cell*omega;
 }
 #endif //RENDER_VEW_DEP
+
+#ifdef RENDER_ENTROPY
+void step_cell_render_depth_entropy(__global MOG_TYPE * cell_data,
+                                    __global float    * alpha_data,
+                                             int        data_ptr,
+                                             float      d,
+                                             float    * vis,
+                                             float    * expected_i)
+{
+  float alpha = alpha_data[data_ptr];
+  // float diff_omega=exp(-alpha*d);
+  float diff_omega=1-alpha; //*d);
+  float omega=(*vis) * (1.0f - diff_omega);
+  (*vis) *= diff_omega;
+  omega = clamp(omega,1.0e-8f,1.0f);
+  (*expected_i) -= omega * log2(omega);
+}
+
+#endif
+
 
 #ifdef RENDER_MAX
 void step_cell_render_max(__global MOG_TYPE * cell_data,
@@ -334,26 +355,16 @@ void step_cell_render_depth2(float depth,
                              float  * probsum,
                              float * t)
 {
-  const float alpha = alpha_data[data_ptr];
-  const float diff_omega=exp(-alpha*d);
-  const float omega=(*vis) * (1.0f - diff_omega);
+  float alpha = alpha_data[data_ptr];
+  // float diff_omega=exp(-alpha*d);
+  float diff_omega=1-alpha;
+  float omega=(*vis) * (1.0f - diff_omega);
   (*probsum)+=omega;
-  (*t) = depth*block_len;
-  //: to compute the expected depth
-  if (alpha > 1e-6) {
-      //float expdepth = (*vis)*((*t)*(1 - diff_omega) + d*(-diff_omega) + (1.0 - diff_omega) / alpha);
-      const float t0 = *t;
-      const float t1 = t0+d;
-      // the derivation for the following two equations is a bit ugly, but is based on starting
-      // with the equation for expected depth, which is:
-      // E[depth] = int_0^inf t * exp(-int_0^t alpha(s) ds) dt
-      float expdepth_contribution = (*vis)/alpha * (-diff_omega*(alpha*t1 + 1) + alpha*t0 + 1.0);
-      float expdepth_sqrd_contribution = (*vis)*(diff_omega*(-t1*t1 - 2*t1/alpha + 2/(-alpha*alpha)) - (-t0*t0 - 2*t0/alpha + 2/(-alpha*alpha)));
-      (*expected_depth) += expdepth_contribution;
-      (*expected_depth_square) += expdepth_sqrd_contribution;
-      (*vis) *= diff_omega;
-  }
-  (*t) = depth*block_len +d;
+  (*vis)    *= diff_omega;
+  (*expected_depth)+=depth*omega;
+  (*expected_depth_square)+=depth*depth*omega;
+  (*t)=depth*block_len;
+  //(*t) = depth;
 }
 
 void step_cell_render_depth2_byte(float depth,

@@ -80,6 +80,7 @@ class boxm2_ocl_render_tableau : public boxm2_cam_tableau
   bool is_bw_;
   // toggle depth / expected image
   bool render_depth_;
+  bool render_depth_entropy_;
 
   void calibrate_depth_range();
   float depth_scale_;

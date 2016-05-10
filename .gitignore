@@ -2,6 +2,8 @@ contrib/brl/bseg/boxm2/pyscripts/*pyc
 contrib/brl/bseg/bstm/pyscripts/*pyc
 contrib/brl/bseg/bvxm/pyscripts/*pyc
 contrib/brl/bseg/bvxm/pyscripts/*pyc
+.project
+.cproject
 
 # Do not add ExternalData module staging files
 .ExternalData*

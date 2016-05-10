@@ -12,7 +12,7 @@ set(boxm2_ocl_algo_sources
     boxm2_ocl_paint_online_color.h              boxm2_ocl_paint_online_color.cxx
     boxm2_ocl_change_detection.h                boxm2_ocl_change_detection.cxx
     boxm2_ocl_update_color.h                    boxm2_ocl_update_color.cxx
-    boxm2_ocl_refine.h                          boxm2_ocl_refine.cxx
+    boxm2_ocl_refine.h                          boxm2_ocl_refine.cxx                               boxm2_ocl_refine_bp.cxx
     boxm2_ocl_render_scene_uncertainty_map.h    boxm2_ocl_render_scene_uncertainty_map.cxx
     boxm2_ocl_update.h                          boxm2_ocl_update.cxx
     boxm2_ocl_update_based_dispersion.h         boxm2_ocl_update_based_dispersion.cxx
@@ -33,6 +33,7 @@ set(boxm2_ocl_algo_sources
     boxm2_ocl_filter_scene_data.h               boxm2_ocl_filter_scene_data.cxx
     boxm2_ocl_aggregate_normal_from_filter_vector.h  boxm2_ocl_aggregate_normal_from_filter_vector.cxx
     boxm2_ocl_kernel_vector_filter.h            boxm2_ocl_kernel_vector_filter.cxx
+    boxm2_ocl_update_belief.h	        					boxm2_ocl_update_belief.cxx
    )
 
 vxl_add_library(LIBRARY_NAME boxm2_ocl_algo LIBRARY_SOURCES  ${boxm2_ocl_algo_sources})

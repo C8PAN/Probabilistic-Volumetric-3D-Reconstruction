@@ -125,6 +125,8 @@ boxm2_data_base* boxm2_lru_cache::get_data_base(boxm2_scene_sptr & scene, boxm2_
   }
   boxm2_block* blk = this->get_block(scene,id);
   unsigned n_cells = blk->num_cells();
+
+
   std::size_t byte_length = n_cells * data_size; // override the num_bytes passed parameter
   // then look for the block you're requesting
   std::map<boxm2_block_id, boxm2_data_base*>::iterator iter = data_map.find(id);
@@ -142,15 +144,15 @@ boxm2_data_base* boxm2_lru_cache::get_data_base(boxm2_scene_sptr & scene, boxm2_
 
   // if num_bytes is greater than zero, then you're guaranteed to return a data size with that many bytes
   if (num_bytes > 0) {
-    if (num_bytes != byte_length){
-      std::stringstream ss;
-      ss<<"Attempting to retrieve "<<num_bytes<<" bytes for datatype " << type <<" when actual buffer size should be "<<byte_length;
-      throw std::runtime_error(ss.str());
-      loaded = VXL_NULLPTR;
-      return loaded;
-    }
+//    if (num_bytes != byte_length){
+//      std::stringstream ss;
+//      ss<<"Attempting to retrieve "<<num_bytes<<" bytes for datatype " << type <<" when actual buffer size should be "<<byte_length;
+//      throw std::runtime_error(ss.str());
+//      loaded = VXL_NULLPTR;
+//      return loaded;
+//    }
     // if loaded from disk is good and it matches size, you found it, return
-    if (loaded && loaded->buffer_length() == byte_length) {
+    if (loaded && loaded->buffer_length() == num_bytes) {
       // update data map
       data_map[id] = loaded;
       if (!read_only)  // write-enable is enforced
@@ -161,8 +163,8 @@ boxm2_data_base* boxm2_lru_cache::get_data_base(boxm2_scene_sptr & scene, boxm2_
     // requesting a specific number of bytes, and not found it on disk
     std::cout<<"boxm2_lru_cache::initializing empty data "<<id
             <<" type: "<<type
-            <<" to size: "<< byte_length <<" bytes"<<std::endl;
-    loaded = new boxm2_data_base(new char[byte_length], byte_length, id, read_only);
+            <<" to size: "<< num_bytes <<" bytes"<<std::endl;
+    loaded = new boxm2_data_base(new char[num_bytes], num_bytes, id, read_only);
     loaded->set_default_value(type, data);
   }
   else {
@@ -237,11 +239,11 @@ void boxm2_lru_cache::remove_data_base(boxm2_scene_sptr & scene, boxm2_block_id 
     boxm2_data_base* litter = data_map[id];
     if (!litter->read_only_) {
       // save it
-      std::cout<<"boxm2_lru_cache::remove_data_base "<<scene->xml_path()<<" type "<<type<<':'<<id<<"; saving to disk"<<std::endl;
+//      std::cout<<"boxm2_lru_cache::remove_data_base "<<scene->xml_path()<<" type "<<type<<':'<<id<<"; saving to disk"<<std::endl;
       boxm2_sio_mgr::save_block_data_base(scene->data_path(), id, litter, type);
     }
-    else
-      std::cout<<"boxm2_lru_cache::remove_data_base "<<type<<':'<<id<<"; not saving to disk"<<std::endl;
+//    else
+//      std::cout<<"boxm2_lru_cache::remove_data_base "<<type<<':'<<id<<"; not saving to disk"<<std::endl;
     // now throw it away
     delete litter;
     data_map.erase(rem);
