@@ -14,6 +14,9 @@ If you use this software please cite the following publication:
   year = {2015}
 }
 ```
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/NGj9sGaeOVY/0.jpg)](https://www.youtube.com/watch?v=NGj9sGaeOVY)
+
 ## Requirements:
 - [cmake](http://cmake.org) 
 - OpenCL/OpenGL
