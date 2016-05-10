@@ -1,6 +1,6 @@
 # Probabilistic Volumetric 3D Reconstruction
 
-## Documentation
+This repository implements a probabilistic volumetric 3D reconstruction algorithm. The repo builds on the VXL library. 
 
 If you use this software please cite the following publication:
 ```
@@ -14,3 +14,9 @@ If you use this software please cite the following publication:
   year = {2015}
 }
 ```
+## Requirements:
+- [cmake](http://cmake.org) 
+- OpenCL/OpenGL
+- Nvidia GPU with compute capability at least 3.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
+
+## Compilation:
