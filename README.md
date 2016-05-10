@@ -15,7 +15,7 @@ If you use this software please cite the following publication:
 }
 ```
 
-[![Towards Probabilistic Volumetric Reconstruction using Ray Potentials](http://img.youtube.com/vi/NGj9sGaeOVY/maxresdefault.jpg
+[![Towards Probabilistic Volumetric Reconstruction using Ray Potentials](http:////imgur.com/cmMvzIF
 )](https://www.youtube.com/watch?v=NGj9sGaeOVY)
 
 ## Requirements:
