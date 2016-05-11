@@ -20,18 +20,24 @@ If you use this software please cite the following publication:
 
 ## Requirements:
 - [cmake](http://cmake.org) 
-- OpenCL/OpenGL
+- OpenCL
+- OpenGL
 - Nvidia GPU with compute capability at least 3.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
 
 ## Compilation:
 ```bash
-mkdir vxl_build_directory
-cd vxl_build_directory
-cmake ../vxl/ -DCMAKE_BUILD_TYPE=Release
+cd /path/to/my/build/folder
+cmake /path/to/vxl/source/folder -DCMAKE_BUILD_TYPE=Release
 make -j -k
 ```
 
 ## Running the reconstruction code
+
+### Input image and camera formats
+
+### Creating the scene file
+
+### Reconstruction
 
 ## Visualizing the 3D models
 
