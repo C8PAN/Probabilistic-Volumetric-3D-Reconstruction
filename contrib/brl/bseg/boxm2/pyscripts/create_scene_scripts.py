@@ -11,7 +11,7 @@ class dbvalue:
 
 
 
-def writeSceneFromBox(data_path, resolution, min_pt, max_pt, ntrees_x=64,ntrees_y=64,ntrees_z=64, max_num_lvls=4, appearance_model = "boxm2_mog3_grey", appearance_model2 = "boxm2_num_obs", appearance_model3 = "boxm2_sum_log_msg_pos", p_init=0.001,max_data_size=1500.0):
+def writeSceneFromBox(data_path, resolution, min_pt, max_pt, ntrees_x=64,ntrees_y=64,ntrees_z=64, max_num_lvls=4, appearance_model1 = "boxm2_mog3_grey", appearance_model2 = "boxm2_num_obs", appearance_model3 = "boxm2_sum_log_msg_pos", p_init=0.001,max_data_size=1500.0):
     """A function that takes the minimum and maximum points of a bounding box for the scene in real world coordinates
     and partitions the space into the appropriate number of boxes given a user specified number of trees.
 
