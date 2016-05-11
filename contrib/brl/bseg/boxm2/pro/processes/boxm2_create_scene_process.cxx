@@ -20,7 +20,7 @@
 
 namespace boxm2_create_scene_process_globals
 {
-  const unsigned n_inputs_ = 10;
+  const unsigned n_inputs_ = 11;
   const unsigned n_outputs_ = 1;
 }
 
@@ -33,13 +33,14 @@ bool boxm2_create_scene_process_cons(bprb_func_process& pro)
   input_types_[0] = "vcl_string";
   input_types_[1] = "vcl_string";
   input_types_[2] = "vcl_string";
-  input_types_[3] = "float"; // origin x
-  input_types_[4] = "float"; // origin y
-  input_types_[5] = "float"; // origin z
-  input_types_[6] = "float"; // lon
-  input_types_[7] = "float"; // lat
-  input_types_[8] = "float"; // elev
-  input_types_[9] = "int";   // number of illumination bins in the scene
+  input_types_[3] = "vcl_string";
+  input_types_[4] = "float"; // origin x
+  input_types_[5] = "float"; // origin y
+  input_types_[6] = "float"; // origin z
+  input_types_[7] = "float"; // lon
+  input_types_[8] = "float"; // lat
+  input_types_[9] = "float"; // elev
+  input_types_[10] = "int";   // number of illumination bins in the scene
 
   // process has 1 output
   std::vector<std::string>  output_types_(n_outputs_);
@@ -65,11 +66,12 @@ bool boxm2_create_scene_process(bprb_func_process& pro)
     return false;
   }
   //get the inputs
-  std::vector<std::string> appearance(2,"");
+  std::vector<std::string> appearance(3,"");
   unsigned i = 0;
   std::string datapath = pro.get_input<std::string>(i++);
   appearance[0]       = pro.get_input<std::string>(i++); //Appearance Model String
   appearance[1]       = pro.get_input<std::string>(i++); //Occupancy Model String
+  appearance[2]       = pro.get_input<std::string>(i++); //Occupancy Model String
   float origin_x      = pro.get_input<float>(i++);
   float origin_y      = pro.get_input<float>(i++);
   float origin_z      = pro.get_input<float>(i++);
