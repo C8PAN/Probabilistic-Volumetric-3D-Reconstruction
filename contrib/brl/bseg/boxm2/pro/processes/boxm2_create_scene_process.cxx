@@ -49,10 +49,11 @@ bool boxm2_create_scene_process_cons(bprb_func_process& pro)
   // ill bins might not be set
   brdb_value_sptr idx = new brdb_value_t<int>(0);
   brdb_value_sptr idx2 = new brdb_value_t<float>(0);
-  pro.set_input(9, idx);
+  pro.set_input(9,idx2);
+  pro.set_input(10, idx);
   pro.set_input(8, idx2);
   pro.set_input(7, idx2);
-  pro.set_input(6, idx2);
+ 
 
   return pro.set_input_types(input_types_) && pro.set_output_types(output_types_);
 }
