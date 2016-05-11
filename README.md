@@ -69,7 +69,25 @@ cam = cam_files[index]
 ```
 One way to ensure this correspondence is to name the cameras to match the images, i.e., `img_00001.png` and `img_00001.txt`. 
  
-### Creating the scene file
+### Creating the scene
+You can specify the dimensions of the volume of interest, minimum allowed voxel size in the octree (in world coordinates), and the prior on occupancy probability (see paper reference above) in an XML file `scene_info.xml` as follows,
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bwm_info_for_boxm2>
+<bbox maxx="1" maxy="1" maxz="1" minx="0" miny="0" minz="0" >
+</bbox>
+<min_octree_cell_length val="0.001">
+</min_octree_cell_length>
+<prior_probability val="0.01">
+</prior_probability>
+</bwm_info_for_boxm2>
+```
+Please run the following python script: 
+```python
+import boxm2_create_scene_scripts.py
+boxm2_create_scene_scripts.create_scene('/path/to/scene_info.xml','/path/to/scene/')
+```
+This script should create the folder `/path/to/scene/` and an xml file called `scene.xml` in it. 
 
 ### Reconstruction
 

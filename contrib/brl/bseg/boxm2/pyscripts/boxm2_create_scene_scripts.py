@@ -139,10 +139,10 @@ def boxm2CreateScene(scene_info,boxm2_dir, app1='boxm2_mog3_grey', app2='boxm2_n
 
     #find scene resolution
 
-    res_elm = tree.getroot().find('min_voxel_resolution');
+    res_elm = tree.getroot().find('min_octree_cell_length');
 
     if res_elm is None:
-        print "Invalid info file: No min_voxel_resolution"
+        print "Invalid info file: No min_octree_cell_length"
         sys.exit(-1);
 
     resolution = float(res_elm.get('val'));
