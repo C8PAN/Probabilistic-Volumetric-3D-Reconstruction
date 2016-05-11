@@ -82,7 +82,7 @@ You can specify the dimensions of the volume of interest, minimum allowed voxel 
 </prior_probability>
 </bwm_info_for_boxm2>
 ```
-Please run the following python script to generate the folder and scene 
+Please run the following python script: 
 ```python
 import boxm2_create_scene_scripts.py
 boxm2_create_scene_scripts.create_scene('/path/to/scene_info.xml','/path/to/scene/')
