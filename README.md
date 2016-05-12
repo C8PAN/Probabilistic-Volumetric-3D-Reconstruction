@@ -22,6 +22,8 @@ If you use this software please cite the following publication:
 - [cmake](http://cmake.org) 
 - OpenCL
 - OpenGL
+- Glut
+- Glew
 - Nvidia GPU with compute capability at least 2.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
 
 ## Compilation:
