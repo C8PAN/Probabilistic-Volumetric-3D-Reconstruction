@@ -25,6 +25,7 @@ If you use this software please cite the following publication:
 - Glut
 - Glew
 - Nvidia GPU with compute capability at least 2.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
+- Python >= 2.7
 
 ## Compilation:
 ```bash
