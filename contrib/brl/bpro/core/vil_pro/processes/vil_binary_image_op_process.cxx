@@ -55,7 +55,7 @@ bool vil_binary_image_op_process(bprb_func_process& pro)
   else if (operation=="sum")
     vil_math_image_sum(view_a, view_b, result);
   else if (operation=="diff")
-    vil_math_image_difference(view_a, view_b, result);
+	  vil_math_image_abs_difference(view_a, view_b, result);
   else if (operation=="ratio")
     vil_math_image_ratio(view_a, view_b, result);
   else

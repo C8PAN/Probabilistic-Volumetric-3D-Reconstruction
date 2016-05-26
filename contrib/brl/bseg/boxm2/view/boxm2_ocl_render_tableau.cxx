@@ -130,6 +130,7 @@ bool boxm2_ocl_render_tableau::handle(vgui_event const &e)
     }
     else if (e.key == vgui_key('d')) {
       std::cout << "Toggling depth and expected image" << std::endl;
+      render_depth_entropy_ = false;
       render_depth_ = !render_depth_;
       if (render_depth_) {
         calibrate_depth_range();
@@ -137,6 +138,7 @@ bool boxm2_ocl_render_tableau::handle(vgui_event const &e)
     }
     else if (e.key == vgui_key('e')) {
       std::cout << "Toggling to depth entropy rendering" << std::endl;
+      render_depth_ = false;
       render_depth_entropy_ = !render_depth_entropy_;
       if (render_depth_entropy_) {
         calibrate_depth_range();

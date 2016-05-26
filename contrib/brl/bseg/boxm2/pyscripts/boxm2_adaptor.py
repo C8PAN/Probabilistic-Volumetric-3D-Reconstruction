@@ -930,6 +930,33 @@ def visualize_change(change_img, in_img, thresh=.5, low_is_change=False):
     vis_img = dbvalue(id, type)
     return vis_img
 
+
+    
+####################################################################
+# Render expected depth 
+####################################################################
+
+
+def render_median_depth(scene, cache, img, cam,  device=None) :
+  if cache.type == "boxm2_cache_sptr" :
+    print "boxm2_batch CPU render depth not yet implemented";
+  elif cache.type == "boxm2_opencl_cache_sptr" and device :
+    boxm2_batch.init_process("boxm2OclRenderMedianDepthProcess");
+    boxm2_batch.set_input_from_db(0,device);
+    boxm2_batch.set_input_from_db(1,scene);
+    boxm2_batch.set_input_from_db(2,cache);
+    boxm2_batch.set_input_from_db(3,cam);
+    boxm2_batch.set_input_from_db(4,img);
+    boxm2_batch.run_process();
+    (id,type) = boxm2_batch.commit_output(0);
+    exp_image = dbvalue(id,type);
+    (id,type) = boxm2_batch.commit_output(1);
+    vis_image = dbvalue(id,type);
+    return exp_image, vis_image
+  else :
+    print "ERROR: Cache type not recognized: ", cache.type;
+
+
 ####################################################################
 # Render depth entropy
 ####################################################################

@@ -245,6 +245,24 @@ class boxm2_scene_adaptor(object):
             self.scene, cache, cam, ni, nj, dev)
         return expimg, varimg, visimg
 
+    #render depth image wrapper
+    def render_median_depth(self, cam, device_string="", img = "") :
+        cache = self.active_cache;
+        dev = self.device;
+        #check if force gpu or cpu
+        if device_string=="gpu" :
+          cache = self.opencl_cache;
+        elif device_string=="cpp" :
+          cache = self.cpu_cache;
+          dev = None;
+        if img == "":
+          expimg,visimg = render_median_depth_without_app(self.scene, cache, cam, dev);
+          return expimg,visimg;
+        else:
+          expimg,visimg = render_median_depth(self.scene, cache, img, cam, dev);
+          return expimg,visimg;
+
+
     # render the depth of the surfaces with max probability of being the the
     # first visible and occupied surface along the rays
     def render_depth_of_max_prob_surface(self, cam, ni=1280, nj=720, device_string=""):

@@ -267,7 +267,6 @@ int boxm2_ocl_refine_bp::refine_scene(bocl_device_sptr device,
 
 	//   vcl_cout << "FINISHED FIRST PART..." << vcl_endl;
     }
-
     data_types.clear();
 
 
@@ -275,7 +274,7 @@ int boxm2_ocl_refine_bp::refine_scene(bocl_device_sptr device,
     data_types.push_back(boxm2_data_traits<BOXM2_ALPHA>::prefix());
     for (unsigned int i=0; i<data_types.size(); ++i)
     {
-//      vcl_cout<<"  Swapping data of type: "<<data_types[i]<<vcl_endl;
+      vcl_cout<<"  Swapping data of type: "<<data_types[i]<< " data size: " << boxm2_data_info::datasize(data_types[i]) << vcl_endl;
       bocl_kernel* kern = get_refine_data_kernel(device, data_types[i]);
 
       //get bocl_mem data independent of CPU pointer
@@ -397,7 +396,7 @@ bocl_kernel* boxm2_ocl_refine_bp::get_refine_tree_kernel(bocl_device_sptr device
   //refine trees kernel
   bocl_kernel* refine_tree_kernel=new bocl_kernel();
   refine_tree_kernel->create_kernel( &device->context(), device->device_id(), src_paths,
-                                     "refine_trees", " -D MOG_TYPE_8",
+                                     "refine_trees", " ",
                                      "boxm2 opencl refine trees (pass one)"); //kernel identifier (for error checking)
   tree_kernels_[tree_identifier] = refine_tree_kernel;
   return tree_kernels_[tree_identifier];

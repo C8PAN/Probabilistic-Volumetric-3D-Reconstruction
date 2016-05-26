@@ -129,6 +129,8 @@ void boxm2_ocl_register::register_process()
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_depth_entropy_process, "boxm2OclRenderDepthEntropyProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_gl_depth_entropy_process, "boxm2OclRenderGlDepthEntropyProcess");
   REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_refine_bp_process, "boxm2OclRefineBPProcess");
+  REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_median_depth_process, "boxm2OclRenderMedianDepthProcess");
+  REG_PROCESS_FUNC_CONS(bprb_func_process, bprb_batch_process_manager, boxm2_ocl_render_median_depth_without_app_process, "boxm2OclRenderMedianDepthWithoutAppProcess");
 
 
 }

@@ -114,5 +114,7 @@ DECLARE_FUNC_CONS(boxm2_ocl_clear_app_models_process);
 DECLARE_FUNC_CONS(boxm2_ocl_render_depth_entropy_process);
 DECLARE_FUNC_CONS(boxm2_ocl_render_gl_depth_entropy_process);
 DECLARE_FUNC_CONS(boxm2_ocl_refine_bp_process);
+DECLARE_FUNC_CONS(boxm2_ocl_render_median_depth_process);
+DECLARE_FUNC_CONS(boxm2_ocl_render_median_depth_without_app_process);
 
 #endif
