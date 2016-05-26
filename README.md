@@ -22,6 +22,8 @@ If you use this software please cite the following publication:
 - [cmake](http://cmake.org) 
 - OpenCL
 - OpenGL
+- Glut
+- Glew
 - Nvidia GPU with compute capability at least 2.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
 
 ## Compilation:
@@ -30,7 +32,7 @@ cd /path/to/my/build/folder
 cmake /path/to/vxl/source/folder -DCMAKE_BUILD_TYPE=Release
 make -j -k
 ```
-If everything compiled correctly you should see the executable /path/to/my/build/folder/bin/boxm2_ocl_render_view as well as the library /path/to/my/build/folder/lib/boxm2_batch.so 
+If everything compiled correctly you should see the executable `/path/to/my/build/folder/bin/boxm2_ocl_render_view` as well as the library `/path/to/my/build/folder/lib/boxm2_batch.so` 
 
 Add python scripts to the PYTHONPATH as follows,
 ```bash
@@ -90,7 +92,13 @@ boxm2_create_scene_scripts.create_scene('/path/to/scene_info.xml','/path/to/scen
 This script should create the folder `/path/to/scene/` and an xml file called `scene.xml` in it. 
 
 ### Reconstruction
+TODO
 
 ## Visualizing the 3D models
+You can visualize the volumetric models using the renderer `boxm2_ocl_render_view`.
+```bash
+/path/to/my/build/folder/bin/boxm2_ocl_render_view -scene /path/to/scene/scene.xml
+```
+The renderer computes expected pixel intensities by ray-tracing the probabilistic 3d volume. You can press `d` to render depth maps and `e` to render the entropy in depth distributions. Please see the paper for details. 
 
 ## Exporting point clouds
