@@ -27,6 +27,7 @@
 #include <bocl/bocl_device.h>
 #include <bocl/bocl_kernel.h>
 #include <vnl/vnl_numeric_traits.h>
+#include <vnl/vnl_random.h>
 
 //: Map of kernels should persist between process executions
 vcl_map<vcl_string,vcl_vector<bocl_kernel*> > boxm2_ocl_update_belief::kernels_;
@@ -46,10 +47,11 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
 {
   enum {
 	UPDATE_SEGLEN = 0,
-	UPDATE_PREINF = 1,
-	UPDATE_PROC   = 2,
-	UPDATE_BAYES  = 3,
-	UPDATE_CELL   = 4
+	COMPUTE_PI_INTEGRALS = 1,
+	UPDATE_PREINF = 2,
+	UPDATE_PROC   = 3,
+	UPDATE_BAYES  = 4,
+	UPDATE_CELL   = 5
   };
 
   float transfer_time=0.0f;
@@ -165,7 +167,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
   bocl_mem_sptr pre_image = opencl_cache->alloc_mem(cl_ni*cl_nj*sizeof(float), pre_buff, "pre image buffer");
   pre_image->create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
 
-
   //bocl_mem_sptr norm_image=new bocl_mem(device->context(),norm_buff,cl_ni*cl_nj*sizeof(float),"pre image buffer");
   bocl_mem_sptr norm_image = opencl_cache->alloc_mem(cl_ni*cl_nj*sizeof(float), norm_buff, "norm image buffer");
   norm_image->create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
@@ -192,11 +193,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
   bocl_mem_sptr lookup=new bocl_mem(device->context(), lookup_arr, sizeof(cl_uchar)*256, "bit lookup buffer");
   lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
 
-  //image index buffer
-  vcl_cout << "Updating image " << image_index << "." << vcl_endl;
-  bocl_mem_sptr image_idx_mem = new bocl_mem(device->context(), &image_index, sizeof(image_index), "image index");
-  image_idx_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-
   vcl_cout << "Update app: " << update_app << "." << vcl_endl;
   bocl_mem_sptr update_app_mem = new bocl_mem(device->context(), &update_app, sizeof(bool), "update_app_mem");
   update_app_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
@@ -204,6 +200,19 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
   vcl_cout << "Update occ: " << update_occ << "." << vcl_endl;
   bocl_mem_sptr update_occ_mem = new bocl_mem(device->context(), &update_occ, sizeof(bool), "update_occ_mem");
   update_occ_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+
+  vnl_random rand(9667566); //init with good seed
+  unsigned num_samples = 128;
+  unsigned num_random_numbers = num_samples;
+  float normal_random_numbers[num_random_numbers];
+  for (int i=0; i<num_random_numbers; ++i){
+   normal_random_numbers[i] = rand.normal();
+  }
+  bocl_mem_sptr  cl_normal_random_numbers=new bocl_mem(device->context(), normal_random_numbers, sizeof(float)*num_random_numbers, "normal_random_numbers buffer");
+  cl_normal_random_numbers->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+
+  bocl_mem_sptr num_samples_mem = new bocl_mem(device->context(), &num_samples, sizeof(num_samples), "inum_samples");
+  num_samples_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
 
   // set arguments
   vcl_vector<boxm2_block_id> vis_order;
@@ -282,6 +291,7 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
       //grab an appropriately sized AUX data buffer
       int auxTypeSize = (int)boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX0>::prefix());
       bocl_mem *aux0   = opencl_cache->get_data<BOXM2_AUX0>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
+
       auxTypeSize = (int)boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX1>::prefix());
       bocl_mem *aux1   = opencl_cache->get_data<BOXM2_AUX1>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
 
@@ -295,6 +305,10 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
 
       auxTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix());
       bocl_mem * pos_log_msg_sum   = opencl_cache->get_data(scene,*id,  boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix("pos"), info_buffer->data_buffer_length*auxTypeSize, false);
+
+	  auxTypeSize = (int)boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX3>::prefix());
+	  bocl_mem *PI_array   = opencl_cache->get_data<BOXM2_AUX3>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
+
 
       transfer_time += (float) transfer.all();
       if (i==UPDATE_SEGLEN)
@@ -327,8 +341,38 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         //clear render kernel args so it can reset em on next execution
         kern->clear_args();
       }
+      else if (i==COMPUTE_PI_INTEGRALS)
+		{
+		  local_threads[0] = 64;
+		  local_threads[1] = 1 ;
+		  global_threads[0]=RoundUp(info_buffer->data_buffer_length,local_threads[0]);
+		  global_threads[1]=1;
+
+		  kern->set_arg( blk_info );
+		  kern->set_arg( mog );
+		  kern->set_arg( aux0 );
+		  kern->set_arg( aux1 );
+		  kern->set_arg( PI_array );
+		  kern->set_arg( cl_normal_random_numbers.ptr() );
+		  kern->set_arg( num_samples_mem.ptr() );
+
+		  //execute kernel
+		  kern->execute(queue, 2, local_threads, global_threads);
+		  int status = clFinish(queue);
+		  if (!check_val(status, MEM_FAILURE, "UPDATE EXECUTE FAILED: " + error_to_string(status)))
+			return false;
+		  gpu_time += kern->exec_time();
+
+		  //clear render kernel args so it can reset em on next execution
+		  kern->clear_args();
+		}
       else if (i==UPDATE_PREINF)
       {
+  		local_threads[0] = 8;
+  		local_threads[1] = 8;
+  		global_threads[0]=cl_ni;
+  		global_threads[1]=cl_nj;
+
         kern->set_arg( blk_info );
         kern->set_arg( blk );
         kern->set_arg( alpha );
@@ -336,7 +380,7 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         kern->set_arg( mog );
         kern->set_arg( num_obs );
         kern->set_arg( aux0 );
-        kern->set_arg( aux1 );
+        kern->set_arg( PI_array );
         kern->set_arg( pos_log_msg_sum );
         kern->set_arg( lookup.ptr() );
         kern->set_arg( ray_o_buff.ptr() );
@@ -345,7 +389,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         kern->set_arg( img_dim.ptr() );
         kern->set_arg( vis_image.ptr() );
         kern->set_arg( pre_image.ptr() );
-        kern->set_arg( image_idx_mem.ptr() );
         kern->set_arg( cl_output.ptr() );
         kern->set_local_arg( local_threads[0]*local_threads[1]*sizeof(cl_uchar16) );//local tree,
         kern->set_local_arg( local_threads[0]*local_threads[1]*10*sizeof(cl_uchar) ); //cumsum buffer, imindex buffer
@@ -371,9 +414,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         bocl_mem *new_msg = opencl_cache->get_data<BOXM2_AUX4>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
         new_msg->zero_gpu_buffer(queue);
 
-        auxTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX3>::prefix());
-        bocl_mem *aux3   = opencl_cache->get_data<BOXM2_AUX3>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
-        aux3->zero_gpu_buffer(queue);
 
         kern->set_arg( blk_info );
         kern->set_arg( blk );
@@ -382,9 +422,8 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         kern->set_arg( mog );
         kern->set_arg( num_obs );
         kern->set_arg( aux0 );
-        kern->set_arg( aux1 );
+        kern->set_arg( PI_array );
         kern->set_arg( aux2 );
-        kern->set_arg( aux3 );
         kern->set_arg( pos_log_msg_sum );
         kern->set_arg( new_msg );
         kern->set_arg( lookup.ptr() );
@@ -395,7 +434,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         kern->set_arg( vis_image.ptr() );
         kern->set_arg( pre_image.ptr() );
         kern->set_arg( norm_image.ptr() );
-        kern->set_arg( image_idx_mem.ptr() );
         kern->set_arg( cl_output.ptr() );
         kern->set_local_arg( local_threads[0]*local_threads[1]*sizeof(cl_uchar16) );//local tree,
         kern->set_local_arg( local_threads[0]*local_threads[1]*10*sizeof(cl_uchar) ); //cumsum buffer, imindex buffer
@@ -414,11 +452,11 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         auxTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX2>::prefix());
         bocl_mem *aux2   = opencl_cache->get_data<BOXM2_AUX2>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
 
-        auxTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX3>::prefix());
-        bocl_mem *aux3   = opencl_cache->get_data<BOXM2_AUX3>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
-
         auxTypeSize = (int)boxm2_data_info::datasize(boxm2_data_traits<BOXM2_AUX4>::prefix());
         bocl_mem *new_msg = opencl_cache->get_data<BOXM2_AUX4>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
+
+		bocl_mem *PI_array   = opencl_cache->get_data<BOXM2_AUX3>(scene,*id, info_buffer->data_buffer_length*auxTypeSize);
+
 
         //mog variance, if 0.0f or less, then var will be learned
         bocl_mem_sptr mog_var_mem = new bocl_mem(device->context(), &mog_var, sizeof(mog_var), "update gauss variance");
@@ -436,11 +474,11 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         kern->set_arg( aux0 );
         kern->set_arg( aux1 );
         kern->set_arg( aux2 );
-        kern->set_arg( aux3 );
+        kern->set_arg( PI_array );
+
         kern->set_arg( pos_log_msg_sum );
         kern->set_arg( new_msg );
         kern->set_arg( messages );
-        kern->set_arg( image_idx_mem.ptr() );
         kern->set_arg( mog_var_mem.ptr() );
         kern->set_arg( update_app_mem.ptr() );
         kern->set_arg( update_occ_mem.ptr() );
@@ -460,7 +498,6 @@ bool boxm2_ocl_update_belief::update(boxm2_scene_sptr         scene,
         alpha->read_to_buffer(queue);
         mog->read_to_buffer(queue);
         num_obs->read_to_buffer(queue);
-        cl_output->read_to_buffer(queue);
         messages->read_to_buffer(queue);
         pos_log_msg_sum->read_to_buffer(queue);
 
@@ -533,6 +570,12 @@ vcl_vector<bocl_kernel*>& boxm2_ocl_update_belief::get_kernels(bocl_device_sptr 
   vcl_string seg_opts = options + " -D SEGLEN  -D STEP_CELL=step_cell_seglen(aux_args,data_ptr,llid,d)";
   seg_len->create_kernel(&device->context(), device->device_id(), src_paths, "seg_len_main", seg_opts, "update::seg_len");
   vec_kernels.push_back(seg_len);
+
+  //may need DIFF LIST OF SOURCES FOR THSI GUY TOO
+  bocl_kernel* compute_pi_integral = new bocl_kernel();
+  vcl_string compute_pi_integral_opts = options + " -D COMPUTE_PI_INTEGRALS ";
+  compute_pi_integral->create_kernel(&device->context(), device->device_id(), non_ray_src, "compute_pi_integral", compute_pi_integral_opts, "update::compute_pi_integral");
+  vec_kernels.push_back(compute_pi_integral);
 
   bocl_kernel* pre_inf = new bocl_kernel();
   vcl_string pre_opts = options + " -D PREINF  -D STEP_CELL=step_cell_preinf(aux_args,data_ptr,llid,d)";

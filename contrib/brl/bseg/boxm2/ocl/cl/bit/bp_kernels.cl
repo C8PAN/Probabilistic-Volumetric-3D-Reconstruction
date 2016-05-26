@@ -90,6 +90,55 @@ __kernel
 }
 #endif // SEGLEN
 
+
+#ifdef COMPUTE_PI_INTEGRALS
+
+#define BUMP_SIGMA 0.06f
+
+float compute_int_approx (float8 mixture, float mean_obs, unsigned num_samples, __constant float* normal_random_samples)
+{
+    float weight3 = (1.0f-mixture.s2-mixture.s5);
+    float integral = 0;
+    for(unsigned short s_no = 0; s_no < num_samples; s_no++)
+    {
+        float sample = normal_random_samples[s_no] * BUMP_SIGMA  + mean_obs;
+        float PI = gauss_3_mixture_prob_density(sample, mixture.s0,mixture.s1,mixture.s2,mixture.s3,mixture.s4,mixture.s5,mixture.s6,mixture.s7,weight3 );
+        integral += PI;
+    }
+    return integral / num_samples;
+}
+
+__kernel
+void
+compute_pi_integral(__global RenderSceneInfo  * info,
+                      __global MOG_TYPE         * mixture_array,
+                      __global int              * aux_array0,
+                      __global int              * aux_array1,
+                      __global float            * PI_array,
+                      __constant  float         * normal_random_samples,                     
+                      __constant  unsigned      * num_samples                     
+                      )
+{
+    int gid=get_global_id(0);
+
+    int datasize = info->data_len ;//* info->num_buffer;
+    if (gid<datasize)
+    {
+        //get cell cumulative length and make sure it isn't 0
+        int len_int = aux_array0[gid];
+        float cum_len  = convert_float(len_int);//SEGLEN_FACTOR;
+
+        if ( (cum_len / SEGLEN_FACTOR) > 1e-10f )
+        {
+            int obs_int = aux_array1[gid];
+            float mean_obs = convert_float(obs_int) / convert_float(len_int);
+            CONVERT_FUNC_FLOAT8(mixture,mixture_array[gid])/NORM;
+            PI_array[gid] = compute_int_approx (mixture,  mean_obs, *num_samples, normal_random_samples);
+        }
+    }
+}
+#endif
+
 #ifdef PREINF
 typedef struct
 {
@@ -97,7 +146,7 @@ typedef struct
     __global MSG_TYPE* msg;
     __global MOG_TYPE * mog;
     __global int* seg_len;
-    __global int* mean_obs;
+    __global float* PI_integrals;
     float* vis_inf;
     float* pre_inf;
     unsigned img_idx;
@@ -121,7 +170,7 @@ __kernel
     __global    MOG_TYPE           * mixture_array,    // mixture for each block
     __global    ushort4            * num_obs_array,    // num obs for each block
     __global    int                * aux_array0,       // four aux arrays strung together
-    __global    int                * aux_array1,       // four aux arrays strung together
+    __global    float              * PI_array,       // four aux arrays strung together
     __global    float              * pos_log_msg_sum,       // four aux arrays strung together
     __constant  uchar              * bit_lookup,       // used to get data_index
     __global    float4             * ray_origins,
@@ -130,7 +179,6 @@ __kernel
     __global    uint4              * imgdims,          // dimensions of the input image
     __global    float              * vis_image,        // visibility image
     __global    float              * pre_image,        // preinf image
-    __global    unsigned           * image_idx,        // image index
     __global    float              * output,
     __local     uchar16            * local_tree,       // cache current tree into local memory
     __local     uchar              * cumsum )          // cumulative sum for calculating data pointer
@@ -179,15 +227,10 @@ __kernel
     aux_args.msg     = msg_array;
     aux_args.mog     = mixture_array;
     aux_args.seg_len   = aux_array0;
-    aux_args.mean_obs  = aux_array1;
     aux_args.vis_inf = &vis_inf;
     aux_args.pre_inf = &pre_inf;
-    aux_args.img_idx = (*image_idx);
-    aux_args.output = output;
-    // aux_args.p_init_ = p_init;
     aux_args.pos_log_msg_sum  = pos_log_msg_sum;
-    // aux_args.use_unary  = (*use_unary);
-    // aux_args.init_msgs  = (*init_msgs);
+    aux_args.PI_integrals  = PI_array;
  
     float nearplane = nearfarplanes[0]/linfo->block_len;
     float farplane = nearfarplanes[1]/linfo->block_len;
@@ -210,19 +253,14 @@ typedef struct
     __global float*   alpha;
     __global MOG_TYPE * mog;
     __global int* seg_len;
-    __global int* mean_obs;
     __global int* vis_array;
-    __global int* depth_array;
     __global float* pos_log_msg_sum;
     __global int* new_msg_array;
     __global MSG_TYPE* msg;
-    // __global float* p_init_;
-    __global float* output;
-    unsigned img_idx;
+    __global float* PI_integrals;
     float   norm;
     float*  ray_vis;
     float*  ray_pre;
-    // bool use_unary, init_msgs; 
 
     __constant RenderSceneInfo * linfo;
 } AuxArgs;
@@ -240,9 +278,8 @@ __kernel
     __global    MOG_TYPE           * mixture_array,     // mixture for each block
     __global    ushort4            * num_obs_array,     // num obs for each block
     __global    int                * aux_array0,        // four aux arrays strung together
-    __global    int                * aux_array1,        // four aux arrays strung together
+    __global    float              * PI_array,        // four aux arrays strung together
     __global    int                * aux_array2,        // four aux arrays strung together
-    __global    int                * aux_array3,        // four aux arrays strung together
     __global    float              * pos_log_msg_sum,   // four aux arrays strung together
     __global    int                * new_msg,           // four aux arrays strung together
     __constant  uchar              * bit_lookup,        // used to get data_index
@@ -253,7 +290,6 @@ __kernel
     __global    float              * vis_image,         // visibility image (for keeping vis across blocks)
     __global    float              * pre_image,         // preinf image (for keeping pre across blocks)
     __global    float              * norm_image,        // norm image (for bayes update normalization factor)
-    __global    unsigned           * image_idx,         // image index
     __global    float              * output,
     __local     uchar16            * local_tree,        // cache current tree into local memory
     __local     uchar              * cumsum)            // cumulative sum for calculating data pointer
@@ -300,17 +336,14 @@ __kernel
     aux_args.alpha      = alpha_array;
     aux_args.mog        = mixture_array;
     aux_args.seg_len    = aux_array0;
-    aux_args.mean_obs   = aux_array1;
     aux_args.vis_array  = aux_array2;
-    aux_args.depth_array  = aux_array3;
     aux_args.new_msg_array = new_msg;
     aux_args.norm = norm;
     aux_args.ray_vis = &vis;
     aux_args.ray_pre = &pre;
     aux_args.msg     = msg_array;
-    aux_args.output     = output;
-    aux_args.img_idx = (*image_idx);
     aux_args.pos_log_msg_sum  = pos_log_msg_sum;
+    aux_args.PI_integrals  = PI_array;
 
     float nearplane = nearfarplanes[0]/linfo->block_len;
     float farplane = nearfarplanes[1]/linfo->block_len;
@@ -407,12 +440,10 @@ update_bit_scene_main(__global RenderSceneInfo  * info,
                       __global int              * aux_array0,
                       __global int              * aux_array1,
                       __global int              * aux_array2,       // vis
-                      __global int              * aux_array3,       // depth
+                      __global float            * PI_array,       // vis
                       __global    float         * pos_log_msg_sum,  // four aux arrays strung together
                       __global int              * new_msg,          // four aux arrays strung together
                       __global MSG_TYPE         * msg_array,        // messages for each block
-                      __global unsigned         * image_idx,        // image index
-                      // __global bool             * use_unary,        // 
                       __global float            * mog_var,          // if 0 or less, variable var, otherwise use as fixed var
                       __global bool             * update_app,          // if 0 or less, variable var, otherwise use as fixed var
                       __global bool             * update_occ,          // if 0 or less, variable var, otherwise use as fixed var
@@ -435,11 +466,9 @@ update_bit_scene_main(__global RenderSceneInfo  * info,
         {
             int obs_int = aux_array1[gid];
             int vis_int = aux_array2[gid];
-            int depth_int= aux_array3[gid];
             int new_msg_int= new_msg[gid];
             float mean_obs = convert_float(obs_int) / convert_float(len_int);
             float cell_vis  = convert_float(vis_int) / convert_float(len_int);
-            // int depth  = convert_int( convert_float(depth_int) / convert_float(len_int));
             float cell_new_msg = convert_float(new_msg_int) / (convert_float(len_int));
 
             if(*update_occ) {
@@ -457,7 +486,6 @@ update_bit_scene_main(__global RenderSceneInfo  * info,
 
                 //save msg
                 msg_array[gid] = new_log_msg;
-
 
                 // compute new alpha
                 float max_msg = max(updated_pos_log_msg_sum, 0.0f);
@@ -499,14 +527,11 @@ update_bit_scene_main(__global RenderSceneInfo  * info,
                 nobs_array[gid] = convert_ushort4_sat_rte(post_nobs);
             }
         }
-//         else
-//             alpha_array[gid] = -1.0f;
-
         //clear out aux data
         aux_array0[gid] = 0;
         aux_array1[gid] = 0;
         aux_array2[gid] = 0;
-        aux_array3[gid] = 0;
+        PI_array[gid] = 0;
         new_msg[gid] = 0;
     }
 }

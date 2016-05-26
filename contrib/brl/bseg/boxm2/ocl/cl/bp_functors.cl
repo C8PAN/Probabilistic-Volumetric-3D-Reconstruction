@@ -10,9 +10,8 @@ void step_cell_seglen(AuxArgs aux_args, int data_ptr, uchar llid, float d)
 #endif // SEGLEN
 
 #ifdef PREINF
-void pre_infinity_opt(  float    seg_len,
-                        float    cum_len,
-                        float    mean_obs,
+void pre_infinity_opt(  float    cum_len,
+                        float    PI,
                         float  * vis_inf,
                         float  * pre_inf,
                         float    alpha,
@@ -23,22 +22,8 @@ void pre_infinity_opt(  float    seg_len,
                         __global float * output)
 {
     /* if total length of rays is too small, do nothing */
-    float PI = 0.0f;
     if (cum_len > 1.0e-10f)
     {
-        /* The mean intensity for the cell */
-        PI = gauss_3_mixture_prob_density( mean_obs,
-                                           mixture.s0,
-                                           mixture.s1,
-                                           mixture.s2,
-                                           mixture.s3,
-                                           mixture.s4,
-                                           mixture.s5,
-                                           mixture.s6,
-                                           mixture.s7,
-                                           weight3 //(1.0f-mixture.s2-mixture.s5)
-                                          );/* PI */
-
       if(!isnan(cur_log_msg) ) { //subtract current message from sum of messages only if it has been added before, i.e., if the message is valid.
         pos_log_msg_sum -= cur_log_msg;
       }
@@ -85,15 +70,14 @@ void step_cell_preinf(AuxArgs aux_args, int data_ptr, uchar llid, float d)
     float  weight3  = (1.0f-mixture.s2-mixture.s5);
 
     int cum_int = aux_args.seg_len[data_ptr];
-    int mean_int = aux_args.mean_obs[data_ptr];
-
-    float mean_obs = convert_float(mean_int) / convert_float(cum_int);
     float cum_len = convert_float(cum_int) / SEGLEN_FACTOR;
 
+    float PI    = aux_args.PI_integrals[data_ptr];
+
+
     //calculate pre_infinity denomanator (shape of image)
-    pre_infinity_opt( d*aux_args.linfo->block_len,
-                      cum_len,
-                      mean_obs,
+    pre_infinity_opt( cum_len,
+                      PI,
                       aux_args.vis_inf,
                       aux_args.pre_inf,
                       alpha,
@@ -110,10 +94,7 @@ void step_cell_preinf(AuxArgs aux_args, int data_ptr, uchar llid, float d)
 void bayes_ratio_ind( float alpha,
                       float  d,
                       float  cum_len,
-                      float8 mixture,
-                      float  weight3,
-                      float  block_len,
-                      float  mean_obs,
+                      float  PI,
                       float  cur_log_msg,
                       float  norm,
                       float* ray_pre,
@@ -122,22 +103,8 @@ void bayes_ratio_ind( float alpha,
                       float* new_msg,
                       float    pos_log_msg_sum)
 {
-    float PI = 0.0;
-
     /* Compute PI for all threads */
     if (cum_len >1.0e-10f) {    /* if  too small, do nothing */
-        PI = gauss_3_mixture_prob_density(mean_obs,
-                                          mixture.s0,
-                                          mixture.s1,
-                                          mixture.s2,
-                                          mixture.s3,
-                                          mixture.s4,
-                                          mixture.s5,
-                                          mixture.s6,
-                                          mixture.s7,
-                                          weight3 );
-    
-
 
       if(!isnan(cur_log_msg) )  //subtract current message from sum of messages only if it has been added before, i.e., if the message is valid.
         pos_log_msg_sum -= cur_log_msg;
@@ -185,18 +152,15 @@ void step_cell_bayes(AuxArgs aux_args, int data_ptr, uchar llid, float d)
     float pos_log_msg_sum    = aux_args.pos_log_msg_sum[data_ptr];
 
     int cum_int = aux_args.seg_len[data_ptr];
-    int mean_int = aux_args.mean_obs[data_ptr];
-    float mean_obs = convert_float(mean_int) / convert_float(cum_int);
     float cum_len = convert_float(cum_int) / SEGLEN_FACTOR;
+
+    float PI    = aux_args.PI_integrals[data_ptr];
 
     float  vis_cont, new_msg;
     bayes_ratio_ind( alpha,
                      d,
                      cum_len,
-                     mixture,
-                     weight3,
-                     aux_args.linfo->block_len,
-                     mean_obs,
+                     PI,
                      cur_msg,
                      aux_args.norm,
                      aux_args.ray_pre,
