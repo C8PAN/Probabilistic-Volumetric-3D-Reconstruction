@@ -105,3 +105,9 @@ The renderer computes expected pixel intensities by ray-tracing the probabilisti
 ![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/teaser_img.png)
 
 ## Exporting point clouds
+The probabilistic volumetric 3D model can also be visualized as a point cloud. We provide the following script that extracts a point cloud from the 3D model and exports it in XYZ format which can be visualized using [CloudCompare](http://www.danielgm.net/cc/):
+```bash
+/path/to/vxl/source/folder/contrib/brl/bseg/boxm2/pyscripts/export_point_cloud.py
+```
+This script outputs points that correspond to voxel centers. Point with very small probability are filtered for better visualization. The script also outputs the marginal occupancy belief for each point. CloudCompare can be used to visualize these probabilities as shown below:
+![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/cloud_compare.png)
