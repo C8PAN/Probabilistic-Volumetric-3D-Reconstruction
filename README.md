@@ -102,4 +102,6 @@ You can visualize the volumetric models using the renderer `boxm2_ocl_render_vie
 ```
 The renderer computes expected pixel intensities by ray-tracing the probabilistic 3d volume. You can press `d` to render depth maps and `e` to render the entropy in depth distributions. Please see the paper for details. 
 
+![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/teaser_img.png)
+
 ## Exporting point clouds
