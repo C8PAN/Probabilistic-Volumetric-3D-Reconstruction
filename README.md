@@ -93,11 +93,11 @@ boxm2_create_scene_scripts.create_scene('/path/to/scene_info.xml','/path/to/scen
 This script should create the folder `/path/to/scene/` and an xml file called `scene.xml` in it. 
 
 ### Reconstruction
-We provide the following script to reconstruct a scene:
+We provide the following python script to reconstruct a scene from a set of images and cameras:
 ```bash
 /path/to/vxl/source/folder/contrib/brl/bseg/boxm2/pyscripts/reconstruct.py
 ```
-Please follow the instructions in the script. 
+Please follow the instructions inside the script. 
 
 ## Visualizing the 3D models
 You can visualize the volumetric models using the renderer `boxm2_ocl_render_view`.
