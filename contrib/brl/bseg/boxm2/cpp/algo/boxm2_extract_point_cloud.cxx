@@ -64,8 +64,8 @@ bool boxm2_extract_point_cloud::extract_point_cloud(boxm2_scene_sptr scene, boxm
            //compute probability
            int curr_depth = bit_tree.depth_at(currBitIndex);
            double side_len = 1.0 / (double) (1<<curr_depth);
-           float prob = 1.0f - (float)std::exp(-alpha_data[currIdx] * side_len * data.sub_block_dim_.x());
-           if (prob < prob_thresh)
+//           float prob = 1.0f - (float)std::exp(-alpha_data[currIdx] * side_len * data.sub_block_dim_.x());
+           if (alpha_data[currIdx]  < prob_thresh)
            {
              points_data[currIdx][3] = -1.0f;
              continue;

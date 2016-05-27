@@ -55,9 +55,7 @@ void boxm2_export_oriented_point_cloud_function::exportPointCloudXYZ(const boxm2
                <<  normals_data[currIdx][0] << ' ' << normals_data[currIdx][1] << ' ' << normals_data[currIdx][2] << ' ';
 
           if (output_aux) {
-            file  <<  prob  << ' ' <<  normals_data[currIdx][3] << ' ' <<  vis_data[currIdx] << ' ' <<  vis_sum_data[currIdx];
-            file << ' ' << ray_dir_sum_data[currIdx][0] << " " << ray_dir_sum_data[currIdx][1] << " " << ray_dir_sum_data[currIdx][2] << " ";
-            file << ' ' <<  exp_data[currIdx] << ' ' <<  nobs_data[currIdx];
+            file  <<  prob;
           }
           file << std::endl;
         }
@@ -349,7 +347,7 @@ bool boxm2_export_oriented_point_cloud_function::calculateProbOfPoint(const boxm
   int depth=tree.depth_at(bit_index);
   float side_len=static_cast<float>(mdata.sub_block_dim_.x()/((float)(1<<depth)));
 
-  prob=1.0f-std::exp(-alpha*side_len);
+  prob=alpha; //1.0f-std::exp(-alpha*side_len);
   return true;
 }
 

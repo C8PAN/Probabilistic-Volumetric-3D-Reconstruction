@@ -207,7 +207,7 @@ int boxm2_ocl_refine_bp::refine_scene(bocl_device_sptr device,
 
 		//copy parent behavior.. if true, Data copies its parent
 		bool copy_parent_buffer[1];
-		*copy_parent_buffer = false;
+		*copy_parent_buffer =  data_types[i] == boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix("pos") ;
 		bocl_mem copy_parent(device->context(), copy_parent_buffer, sizeof(cl_bool), "copy_parent buffer");
 		copy_parent.create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
 
@@ -215,7 +215,8 @@ int boxm2_ocl_refine_bp::refine_scene(bocl_device_sptr device,
 		bocl_mem is_msg(device->context(), is_msg_buffer, sizeof(cl_bool), "is_msg buffer");
 		is_msg.create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
 
-		bool is_sum_pos_log_buffer[1] = { data_types[i] == boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix("pos") };
+//		bool is_sum_pos_log_buffer[1] = { data_types[i] == boxm2_data_traits<BOXM2_SUM_LOG_MSG>::prefix("pos") };
+		bool is_sum_pos_log_buffer[1] = { false };
 		bocl_mem is_sum_pos_log(device->context(), is_sum_pos_log_buffer, sizeof(cl_bool), "is_sum_pos_log_buffer buffer");
 		is_sum_pos_log.create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
 
