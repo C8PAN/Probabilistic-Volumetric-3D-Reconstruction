@@ -17,6 +17,7 @@ If you use this software please cite the following publication:
   year = {2015}
 }
 ```
+Note: The code implements a modified version of the algorithm described in the paper. Namely, the belief update of the appearance variables is exchanged with an online-EM approach originally proposed by Pollard and Mundy [CVPR2007]. Our experiments show that this approximation is much faster compared to the original approach proposed in our paper and produces comparable results. 
 
 ## Requirements:
 - [cmake](http://cmake.org) 
@@ -40,7 +41,7 @@ Add python scripts to the PYTHONPATH as follows,
 export PYTHONPATH=$PYTHONPATH:/path/to/my/build/folder/lib/:/path/to/vxl/source/folder/contrib/brl/bseg/boxm2/pyscripts/
 ```
 
-## Running the reconstruction code
+## Tutorial
 
 ### The input
 
@@ -72,7 +73,7 @@ cam = cam_files[index]
 ```
 One way to ensure this correspondence is to name the cameras to match the images, i.e., `img_00001.png` and `img_00001.txt`. 
  
-### Creating the scene
+### Scene volume specification
 You can specify the dimensions of the volume of interest, minimum allowed voxel size in the octree (in world coordinates), and the prior on occupancy probability (see paper reference above) in an XML file `scene_info.xml` as follows,
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -93,7 +94,7 @@ boxm2_create_scene_scripts.create_scene('/path/to/scene_info.xml','/path/to/scen
 This script should create the folder `/path/to/scene/` and an xml file called `scene.xml` in it. 
 
 ### Reconstruction
-We provide the following python script to reconstruct a scene from a set of images and cameras:
+We provide the following python script to reconstruct the scene from the input images and cameras:
 ```bash
 /path/to/vxl/source/folder/contrib/brl/bseg/boxm2/pyscripts/reconstruct.py
 ```
@@ -108,7 +109,7 @@ The renderer computes expected pixel intensities by ray-tracing the probabilisti
 
 ![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/teaser_img.png)
 
-## Exporting point clouds
+## How to export the 3d model as a point cloud
 The probabilistic volumetric 3D model can also be visualized as a point cloud. We provide the following script that extracts a point cloud from the 3D model and exports it in XYZ format which can be visualized using [CloudCompare](http://www.danielgm.net/cc/):
 ```bash
 /path/to/vxl/source/folder/contrib/brl/bseg/boxm2/pyscripts/export_point_cloud.py
