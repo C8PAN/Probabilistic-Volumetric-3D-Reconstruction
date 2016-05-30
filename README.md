@@ -116,5 +116,6 @@ The probabilistic volumetric 3D model can also be visualized as a point cloud. W
 ```
 This script outputs points that correspond to voxel centers. Point with very small probability are filtered for better visualization. The script also outputs the marginal occupancy belief for each point. CloudCompare can be used to visualize these probabilities as shown below:
 ![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/cloud_compare.png)
-=======
 
+## Data
+As example data, we provide the three aerial datasets used in the publication: [link](http://www.cvlibs.net/download.php?file=probabilistic_reconstruction_data.zip). Each subfolder contains images, cameras as well as the final octree structure used to produce the results in the paper. We also included a `reconstruct.py` python script which can be directly executed to reconstruct the scene. 
