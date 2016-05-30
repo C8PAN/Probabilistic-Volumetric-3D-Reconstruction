@@ -118,4 +118,4 @@ This script outputs points that correspond to voxel centers. Point with very sma
 ![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/cloud_compare.png)
 
 ## Data
-As example data, we provide the three aerial datasets used in the publication: [link](http://www.cvlibs.net/download.php?file=probabilistic_reconstruction_data.zip). Each subfolder contains images, cameras as well as the final octree structure used to produce the results in the paper. We also included a `reconstruct.py` python script which can be directly executed to reconstruct the scene. 
+As example data, we provide the three aerial datasets used in the publication: [link](http://www.cvlibs.net/download.php?file=probabilistic_reconstruction_data.zip). The folder contains a subfolder for each scene. Each subfolder contains images, cameras, as well as the final octree structure used to produce the results in the paper. A python script that can be directly executed to reconstruct the scene is also included for convenience. 
