@@ -47,7 +47,7 @@ export PYTHONPATH=$PYTHONPATH:/path/to/my/build/folder/lib/:/path/to/vxl/source/
 * Images: The current implementation works with intensity images. If you supply an RGB image, it will be automatically converted to intensity. 
 
 * Cameras: Our algorithm expects camera intrinsics (`K` 3x3 matrix) and extrinsics (`[R|t]` 3x4 matrix) for each image. The projection matrix is `P = K [R | t]`. Cameras are specified in separate text files for each image. Each camera text file is formatted as follows: 
-```bash
+```
 f_x    s    c_x
 0     f_y   c_y
 0      0     1
