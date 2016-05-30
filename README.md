@@ -51,15 +51,11 @@ export PYTHONPATH=$PYTHONPATH:/path/to/my/build/folder/lib/:/path/to/vxl/source/
 f_x    s    c_x
 0     f_y   c_y
 0      0     1
-```
-
-```
+\n
 R_11   R_12  R_13
 R_21   R_22  R_23
 R_31   R_32  R_33
-```
-
-```
+\n
 t_1    t_2   t_3
 ```
 where `f_x` and `f_y` are the focal lenghts, `c_x` and `c_y` is the principal point and `s` is the skew parameter. Together, these parameters make up the intrinsics matrix `K`. The second matrix is the rotation matrix `R`. The final row is the translation vector `t`. 
