@@ -19,6 +19,9 @@ If you use this software please cite the following publication:
 ```
 Note: The code implements a modified version of the algorithm described in the paper. Namely, the belief update of the appearance variables is exchanged with an online-EM approach originally proposed by Pollard and Mundy [CVPR2007]. Our experiments show that this approximation is much faster compared to the original approach proposed in our paper and produces comparable results. 
 
+## Contact:
+If you run into any issues or have any suggestions, please do not hesitate to contact [Ali Osman Ulusoy](https://ps.is.tuebingen.mpg.de/person/oulusoy) at `osman.ulusoy@tuebingen.mpg.de`
+
 ## Requirements:
 - [cmake](http://cmake.org) 
 - OpenCL
@@ -27,6 +30,8 @@ Note: The code implements a modified version of the algorithm described in the p
 - Glew
 - Nvidia GPU with compute capability at least 2.0, see https://en.wikipedia.org/wiki/CUDA#Supported_GPU)
 - Python >= 2.7
+- Libtiff
+- Libpng
 
 ## Compilation:
 ```bash
@@ -118,4 +123,4 @@ This script outputs points that correspond to voxel centers. Point with very sma
 ![alt tag](https://raw.githubusercontent.com/aliosmanulusoy/vxl/master/cloud_compare.png)
 
 ## Data
-As example data, we provide the three aerial datasets used in the publication: [link](http://www.cvlibs.net/download.php?file=probabilistic_reconstruction_data.zip). The folder contains a subfolder for each scene. Each subfolder contains images, cameras, as well as the final octree structure used to produce the results in the paper. A python script that can be directly executed to reconstruct the scene is also included for convenience. 
+As example data, we provide the three aerial datasets used in the publication: [link](http://www.cvlibs.net/download.php?file=probabilistic_reconstruction_data.zip). The folder contains a subfolder for each scene. Each subfolder contains images, cameras, as well as the final octree structure used to produce the results in the paper. A python script to reconstruct the scene is also included for convenience. Please call `python reconstruct.py` from inside the subfolder. 
